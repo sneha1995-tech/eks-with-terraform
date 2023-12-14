@@ -95,3 +95,8 @@ resource "aws_security_group" "demo-vpc-sg" {
     Name = "allow_tls"
   }
 }
+
+  module " sg " {
+    source = "./security_Group"
+    vpc_id = aws_vpc.demo-vpc.id
+  
