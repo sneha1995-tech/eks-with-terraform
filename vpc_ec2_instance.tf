@@ -7,7 +7,7 @@ resource "aws_instance" "demo-server" {
  key_name = var.key 
  instance_type  = var.instance-type
  associate_public_ip_address = true
-subnet_id = aws_subnet.demo_subnet.id
+subnet_id = aws_subnet.demo_subnet-1.id
 vpc_security_group_ids = [aws_security_group.demo-vpc-sg.id]
 }
 
@@ -17,7 +17,7 @@ resource "aws_vpc" "demo-vpc" {
 }
 
 // Create Subnet
-resource "aws_subnet" "demo_subnet_1" {
+resource "aws_subnet" "demo_subnet-1" {
   vpc_id     = aws_vpc.demo-vpc.id 
   cidr_block = var.subnet1-cidr
   availability_zone = var.subent_az
@@ -29,7 +29,7 @@ resource "aws_subnet" "demo_subnet_1" {
 
 
 // Create Subnet
-resource "aws_subnet" "demo_subnet_2" {
+resource "aws_subnet" "demo_subnet-2" {
   vpc_id     = aws_vpc.demo-vpc.id 
   cidr_block = var.subnet2-cidr
   availability_zone = var.subent_az
@@ -62,8 +62,15 @@ resource "aws_route_table" "demo-rt" {
 }
 
 // associate subnet with route table 
-resource "aws_route_table_association" "demo-rt_association" {
-  subnet_id      = aws_subnet.demo_subnet.id 
+resource "aws_route_table_association" "demo-rt_association-1" {
+  subnet_id      = aws_subnet.demo_subnet-1.id 
+
+  route_table_id = aws_route_table.demo-rt.id
+}
+
+// associate subnet with route table 
+resource "aws_route_table_association" "demo-rt_association-2" {
+  subnet_id      = aws_subnet.demo_subnet-2.id 
 
   route_table_id = aws_route_table.demo-rt.id
 }
@@ -96,7 +103,14 @@ resource "aws_security_group" "demo-vpc-sg" {
   }
 }
 
-  module " sg " {
+  module "sg" {
     source = "./security_Group"
     vpc_id = aws_vpc.demo-vpc.id
-  
+  }
+
+  module "eks" {
+    source = "./eks"
+    sg_ids = module.sgs.security_group_public
+    vpc_id = aws_vpc.demo-vpc.id
+    subnet_ids = [aws_subnet.demo_subnet-1.id,aws_subnet.demo_subnet-2.id]
+  }
